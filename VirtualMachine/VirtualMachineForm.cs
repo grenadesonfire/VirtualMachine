@@ -63,7 +63,6 @@ namespace VirtualMachine
                 ProcessCommand(command);
             }
         }
-
         private void ProcessCommand(string command)
         {
             string[] cmdBits = command.Split(new string[] {" "}, StringSplitOptions.RemoveEmptyEntries);
@@ -94,7 +93,6 @@ namespace VirtualMachine
                 
             }
         }
-
         private void CommandLineTextBox_Click(object sender, EventArgs e)
         {
             EnforceCursorPosition();
@@ -103,6 +101,38 @@ namespace VirtualMachine
         {
             CommandLineTextBox.SelectionStart = PROMPT.Length;
             CommandLineTextBox.SelectionLength = 0;
+        }
+        private void loadVmFile_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new OpenFileDialog();
+            if(ofd.ShowDialog() == DialogResult.OK)
+            {
+                string file = ofd.FileName;
+                translator.LoadFile(file);
+                vmFileTextBox.Lines = translator.fileContents;
+            }
+        }
+
+        private void Translate_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog sfd = new SaveFileDialog();
+            sfd.OverwritePrompt = true;
+            sfd.AddExtension = true;
+            sfd.Filter = "Hack Assembly Files | *.asm";
+            if(sfd.ShowDialog() == DialogResult.OK)
+            {
+                string file = sfd.FileName;
+                translator.Parse();
+                translator.TranslateToHackAssem();
+                translator.Save(file);
+
+                //asmFileTextBox.Lines = translator.hackCode.ToArray();
+                string[] asm = translator.hackCode.ToArray();
+                for(int i=0;i<asm.Length;i++)
+                {
+                    asmFileTextBox.Text += string.Format("{0}: {1}", i, asm[i]) + Environment.NewLine;
+                }
+            }
         }
     }
 }

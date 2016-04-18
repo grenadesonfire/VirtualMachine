@@ -3,7 +3,6 @@ D:\Git\nand2tetris\VirtualMachine\VirtualMachine\bin\Debug\VirtualMachine.exe
 D:\Git\nand2tetris\VirtualMachine\VirtualMachine\bin\Debug\VirtualMachine.pdb
 D:\Git\nand2tetris\VirtualMachine\VirtualMachine\bin\Debug\log4net.dll
 D:\Git\nand2tetris\VirtualMachine\VirtualMachine\bin\Debug\log4net.xml
-D:\Git\nand2tetris\VirtualMachine\VirtualMachine\obj\Debug\VirtualMachine.csprojResolveAssemblyReference.cache
 D:\Git\nand2tetris\VirtualMachine\VirtualMachine\obj\Debug\VirtualMachine.Properties.Resources.resources
 D:\Git\nand2tetris\VirtualMachine\VirtualMachine\obj\Debug\VirtualMachine.csproj.GenerateResource.Cache
 D:\Git\nand2tetris\VirtualMachine\VirtualMachine\obj\Debug\VirtualMachine.exe
