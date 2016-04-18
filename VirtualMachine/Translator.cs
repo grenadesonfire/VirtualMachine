@@ -34,7 +34,6 @@ namespace VirtualMachine
         {
             get; private set;
         }
-        //Stack<string> _stack;
         List<string> parsedInput;
         public List<string> hackCode { get; private set; }
         int _arithLabelCnt = 0;
@@ -93,7 +92,26 @@ namespace VirtualMachine
                         else if(parsedInput[index+1] == "temp")
                         {
                             hackCode.Add("@" + (5 + int.Parse(parsedInput[index + 2])));
-                            PushPointer(index);
+                            hackCode.Add("D=M");
+                            Push();
+                        }
+                        else if(parsedInput[index+1] == "static")
+                        {
+                            hackCode.Add("@" + (16 + int.Parse(parsedInput[index + 2])));
+                            hackCode.Add("D=M");
+                            Push();
+                        }
+                        else if(parsedInput[index + 1] == "pointer" && parsedInput[index + 2] == "0")
+                        {
+                            hackCode.Add("@THIS");
+                            hackCode.Add("D=M");
+                            Push();
+                        }
+                        else if(parsedInput[index + 1] == "pointer" && parsedInput[index + 2] == "1")
+                        {
+                            hackCode.Add("@THAT");
+                            hackCode.Add("D=M");
+                            Push();
                         }
                         //Goto the next token that hasn't been consumed.
                         //return TranslateToHackAssem(index + next + 1);
@@ -103,24 +121,47 @@ namespace VirtualMachine
                         if (parsedInput[index + 1] == "local")
                         {
                             hackCode.Add("@LCL");
+                            Pop(index);
                         }
                         else if (parsedInput[index + 1] == "argument")
                         {
                             hackCode.Add("@ARG");
+                            Pop(index);
                         }
                         else if (parsedInput[index + 1] == "this")
                         {
                             hackCode.Add("@THIS");
+                            Pop(index);
                         }
                         else if (parsedInput[index + 1] == "that")
                         {
                             hackCode.Add("@THAT");
+                            Pop(index);
                         }
                         else if (parsedInput[index + 1] == "temp")
                         {
                             hackCode.Add("@" + (5 + int.Parse(parsedInput[index + 2])));
+                            hackCode.Add("D=0");
+                            GenericPop();
                         }
-                        Pop();
+                        else if (parsedInput[index + 1] == "static")
+                        {
+                            hackCode.Add("@" + (16 + int.Parse(parsedInput[index + 2])));
+                            hackCode.Add("D=0");
+                            GenericPop();
+                        }
+                        else if(parsedInput[index + 1] == "pointer" && parsedInput[index + 2] == "0")
+                        {
+                            hackCode.Add("@3");
+                            hackCode.Add("D=0");
+                            GenericPop();
+                        }
+                        else if(parsedInput[index + 1] == "pointer" && parsedInput[index + 2] == "1")
+                        {
+                            hackCode.Add("@4");
+                            hackCode.Add("D=0");
+                            GenericPop();
+                        }
                         //Goto the next token that hasn't been consumed.
                         //return TranslateToHackAssem(index + next + 1);
                         index += 2;
@@ -182,18 +223,51 @@ namespace VirtualMachine
                 index++; 
             }
         }
-
-        private void Pop()
+        private void Pop(int index)
         {
+            //Assuming A has the pointer we're concerned with
+            //Calculate the final address
+            hackCode.Add("A=M");
+            hackCode.Add("D=A");
+            hackCode.Add("@" + parsedInput[index + 2]);
+            GenericPop();
+        }
+        private void GenericPop()
+        {
+            hackCode.Add("D=D+A");
+            //Store at top of the stack
+            hackCode.Add("@SP");
+            hackCode.Add("A=M");
+            hackCode.Add("M=D");
+            //Grab the value we wanted to pop
+            hackCode.Add("@SP");
+            hackCode.Add("A=M-1");
             hackCode.Add("D=M");
-            Push();
+            //Now put that value back into memoery
+            hackCode.Add("@SP");
+            hackCode.Add("A=M");
+            hackCode.Add("A=M");
+            hackCode.Add("M=D");
+            //Decrement stack pointer
+            hackCode.Add("@SP");
+            hackCode.Add("M=M-1");
         }
 
         private void PushPointer(int index)
         {
-            hackCode.Add("D=A");
+            //Resolve pointer to get address of value we want
+            hackCode.Add("D=M");
             hackCode.Add("@" + parsedInput[index + 2]);
-            hackCode.Add("A=A+D");
+            hackCode.Add("A=D+A");
+            //Grab said value
+            hackCode.Add("D=M");
+            //Assign to top of stack
+            hackCode.Add("@SP");
+            hackCode.Add("A=M");
+            hackCode.Add("M=D");
+            //Increment Stack Pointer
+            hackCode.Add("@SP");
+            hackCode.Add("M=M+1");
         }
 
         private void Push()

@@ -128,6 +128,7 @@ namespace VirtualMachine
 
                 //asmFileTextBox.Lines = translator.hackCode.ToArray();
                 string[] asm = translator.hackCode.ToArray();
+                asmFileTextBox.Text = "";
                 for(int i=0;i<asm.Length;i++)
                 {
                     asmFileTextBox.Text += string.Format("{0}: {1}", i, asm[i]) + Environment.NewLine;
