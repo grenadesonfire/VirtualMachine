@@ -15,7 +15,7 @@ C:\GIT\VirtualMachine\VirtualMachine\bin\Debug\VirtualMachine.exe
 C:\GIT\VirtualMachine\VirtualMachine\bin\Debug\VirtualMachine.pdb
 C:\GIT\VirtualMachine\VirtualMachine\bin\Debug\log4net.dll
 C:\GIT\VirtualMachine\VirtualMachine\bin\Debug\log4net.xml
-C:\GIT\VirtualMachine\VirtualMachine\obj\Debug\VirtualMachine.csprojResolveAssemblyReference.cache
 C:\GIT\VirtualMachine\VirtualMachine\obj\Debug\VirtualMachine.VirtualMachineTranslatorForm.resources
 C:\GIT\VirtualMachine\VirtualMachine\obj\Debug\VirtualMachine.Properties.Resources.resources
 C:\GIT\VirtualMachine\VirtualMachine\obj\Debug\VirtualMachine.csproj.GenerateResource.Cache
+C:\GIT\VirtualMachine\VirtualMachine\obj\Debug\VirtualMachine.csprojResolveAssemblyReference.cache

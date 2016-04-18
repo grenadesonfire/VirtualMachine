@@ -54,173 +54,191 @@ namespace VirtualMachine
         }
         private void TranslateToHackAssem(int index)
         {
-            if (index >= parsedInput.Count)
-            {
-                return;
-            }
             while (index < parsedInput.Count)
             {
                 switch (parsedInput[index])
                 {
                     case "push":
-                        if (parsedInput[index + 1] == "constant")
-                        {
-                            hackCode.Add("@" + parsedInput[index + 2]);
-                            hackCode.Add("D=A");
-                            Push();
-                        }
-                        else if (parsedInput[index + 1] == "local")
-                        {
-                            hackCode.Add("@LCL");
-                            PushPointer(index);
-                        }
-                        else if (parsedInput[index + 1] == "argument")
-                        {
-                            hackCode.Add("@ARG");
-                            PushPointer(index);
-                        }
-                        else if(parsedInput[index+1] == "this")
-                        {
-                            hackCode.Add("@THIS");
-                            PushPointer(index);
-                        }
-                        else if(parsedInput[index+1] == "that")
-                        {
-                            hackCode.Add("@THAT");
-                            PushPointer(index);
-                        }
-                        else if(parsedInput[index+1] == "temp")
-                        {
-                            hackCode.Add("@" + (5 + int.Parse(parsedInput[index + 2])));
-                            hackCode.Add("D=M");
-                            Push();
-                        }
-                        else if(parsedInput[index+1] == "static")
-                        {
-                            hackCode.Add("@" + (16 + int.Parse(parsedInput[index + 2])));
-                            hackCode.Add("D=M");
-                            Push();
-                        }
-                        else if(parsedInput[index + 1] == "pointer" && parsedInput[index + 2] == "0")
-                        {
-                            hackCode.Add("@THIS");
-                            hackCode.Add("D=M");
-                            Push();
-                        }
-                        else if(parsedInput[index + 1] == "pointer" && parsedInput[index + 2] == "1")
-                        {
-                            hackCode.Add("@THAT");
-                            hackCode.Add("D=M");
-                            Push();
-                        }
-                        //Goto the next token that hasn't been consumed.
-                        //return TranslateToHackAssem(index + next + 1);
+                        ParsePush(index);
                         index += 2;
                         break;
                     case "pop":
-                        if (parsedInput[index + 1] == "local")
-                        {
-                            hackCode.Add("@LCL");
-                            Pop(index);
-                        }
-                        else if (parsedInput[index + 1] == "argument")
-                        {
-                            hackCode.Add("@ARG");
-                            Pop(index);
-                        }
-                        else if (parsedInput[index + 1] == "this")
-                        {
-                            hackCode.Add("@THIS");
-                            Pop(index);
-                        }
-                        else if (parsedInput[index + 1] == "that")
-                        {
-                            hackCode.Add("@THAT");
-                            Pop(index);
-                        }
-                        else if (parsedInput[index + 1] == "temp")
-                        {
-                            hackCode.Add("@" + (5 + int.Parse(parsedInput[index + 2])));
-                            hackCode.Add("D=0");
-                            GenericPop();
-                        }
-                        else if (parsedInput[index + 1] == "static")
-                        {
-                            hackCode.Add("@" + (16 + int.Parse(parsedInput[index + 2])));
-                            hackCode.Add("D=0");
-                            GenericPop();
-                        }
-                        else if(parsedInput[index + 1] == "pointer" && parsedInput[index + 2] == "0")
-                        {
-                            hackCode.Add("@3");
-                            hackCode.Add("D=0");
-                            GenericPop();
-                        }
-                        else if(parsedInput[index + 1] == "pointer" && parsedInput[index + 2] == "1")
-                        {
-                            hackCode.Add("@4");
-                            hackCode.Add("D=0");
-                            GenericPop();
-                        }
-                        //Goto the next token that hasn't been consumed.
-                        //return TranslateToHackAssem(index + next + 1);
+                        ParsePop(index);
                         index += 2;
                         break;
-                    case "add":
-                        AddArithmeticHeader();
-                        //Add specific
-                        hackCode.Add("D=D+M");
-                        AddArithmeticFooter();
-                        //return TranslateToHackAssem(index + 1);
-                        break;
                     case "sub":
-                        AddArithmeticHeader();
-                        hackCode.Add("D=D-M");
-                        AddArithmeticFooter();
-                        //return TranslateToHackAssem(index + 1);
-                        break;
-                    case "neg":
-                        AddArithmeticHeader(1);
-                        hackCode.Add("D=-D");
-                        AddArithmeticFooter(1);
-                        //return TranslateToHackAssem(index + 1);
+                    case "and":
+                    case "or":
+                    case "add":
+                        ParseArithmetic(parsedInput[index]);
                         break;
                     case "not":
-                        AddArithmeticHeader(1);
-                        hackCode.Add("D=!D");
-                        AddArithmeticFooter(1);
-                        break;// return TranslateToHackAssem(index + 1);
-                    case "and":
-                        AddArithmeticHeader();
-                        hackCode.Add("D=D&M");
-                        AddArithmeticFooter();
-                        break;// return TranslateToHackAssem(index + 1);
-                    case "or":
-                        AddArithmeticHeader();
-                        hackCode.Add("D=D|M");
-                        AddArithmeticFooter();
-                        break;// return TranslateToHackAssem(index + 1);
+                    case "neg":
+                        ParseArithmetic(parsedInput[index], 1);
+                        break;
                     case "eq":
-                        AddBooleanHeader();
-                        //EQ specific
-                        hackCode.Add("D;JEQ");
-                        //Boolean Instructions
-                        AddBooleanFooter();
-                        break;// return TranslateToHackAssem(index + 1);
                     case "lt":
-                        AddBooleanHeader();
-                        hackCode.Add("D;JLT");
-                        AddBooleanFooter();
-                        break;// return TranslateToHackAssem(index + 1);
                     case "gt":
-                        AddBooleanHeader();
-                        hackCode.Add("D;JGT");
-                        AddBooleanFooter();
-                        break;// return TranslateToHackAssem(index + 1);
-                    default:
+                        ParseBoolean(parsedInput[index]);
+                        break;
+                    case "label":
+                        hackCode.Add("(" + parsedInput[index + 1] + ")");
+                        break;
+                    case "if-goto":
+                        hackCode.Add("@SP");
+                        hackCode.Add("AM=M-1");
+                        hackCode.Add("D=M");
+                        hackCode.Add("@" + parsedInput[index + 1]);
+                        hackCode.Add("D;JNE");
                         break;
                 }
                 index++; 
+            }
+        }
+
+        private void ParseBoolean(string v)
+        {
+            AddBooleanHeader();
+            switch (v)
+            {
+                case "eq":
+                    hackCode.Add("D;JEQ");
+                    break;
+                case "lt":
+                    hackCode.Add("D;JLT");
+                    break;
+                case "gt":
+                    hackCode.Add("D;JGT");
+                    break;
+            }
+            AddBooleanFooter();
+        }
+
+        private void ParseArithmetic(string cmd, int arg = 2)
+        {
+            AddArithmeticHeader(arg);
+            switch (cmd)
+            {
+                case "add":
+                    hackCode.Add("D=D+M");
+                    break;
+                case "sub":
+                    hackCode.Add("D=D-M");
+                    break;
+                case "neg":
+                    hackCode.Add("D=-D");
+                    break;
+                case "not":
+                    hackCode.Add("D=!D");
+                    break;
+                case "and":
+                    hackCode.Add("D=D&M");
+                    break;
+                case "or":
+                    hackCode.Add("D=D|M");
+                    break;
+            }
+            AddArithmeticFooter(arg);
+        }
+
+        private void ParsePop(int index)
+        {
+            if (parsedInput[index + 1] == "local")
+            {
+                hackCode.Add("@LCL");
+                Pop(index);
+            }
+            else if (parsedInput[index + 1] == "argument")
+            {
+                hackCode.Add("@ARG");
+                Pop(index);
+            }
+            else if (parsedInput[index + 1] == "this")
+            {
+                hackCode.Add("@THIS");
+                Pop(index);
+            }
+            else if (parsedInput[index + 1] == "that")
+            {
+                hackCode.Add("@THAT");
+                Pop(index);
+            }
+            else if (parsedInput[index + 1] == "temp")
+            {
+                hackCode.Add("@" + (5 + int.Parse(parsedInput[index + 2])));
+                hackCode.Add("D=0");
+                GenericPop();
+            }
+            else if (parsedInput[index + 1] == "static")
+            {
+                hackCode.Add("@" + (16 + int.Parse(parsedInput[index + 2])));
+                hackCode.Add("D=0");
+                GenericPop();
+            }
+            else if (parsedInput[index + 1] == "pointer" && parsedInput[index + 2] == "0")
+            {
+                hackCode.Add("@3");
+                hackCode.Add("D=0");
+                GenericPop();
+            }
+            else if (parsedInput[index + 1] == "pointer" && parsedInput[index + 2] == "1")
+            {
+                hackCode.Add("@4");
+                hackCode.Add("D=0");
+                GenericPop();
+            }
+        }
+        private void ParsePush(int index)
+        {
+            if (parsedInput[index + 1] == "constant")
+            {
+                hackCode.Add("@" + parsedInput[index + 2]);
+                hackCode.Add("D=A");
+                Push();
+            }
+            else if (parsedInput[index + 1] == "local")
+            {
+                hackCode.Add("@LCL");
+                PushPointer(index);
+            }
+            else if (parsedInput[index + 1] == "argument")
+            {
+                hackCode.Add("@ARG");
+                PushPointer(index);
+            }
+            else if (parsedInput[index + 1] == "this")
+            {
+                hackCode.Add("@THIS");
+                PushPointer(index);
+            }
+            else if (parsedInput[index + 1] == "that")
+            {
+                hackCode.Add("@THAT");
+                PushPointer(index);
+            }
+            else if (parsedInput[index + 1] == "temp")
+            {
+                hackCode.Add("@" + (5 + int.Parse(parsedInput[index + 2])));
+                hackCode.Add("D=M");
+                Push();
+            }
+            else if (parsedInput[index + 1] == "static")
+            {
+                hackCode.Add("@" + (16 + int.Parse(parsedInput[index + 2])));
+                hackCode.Add("D=M");
+                Push();
+            }
+            else if (parsedInput[index + 1] == "pointer" && parsedInput[index + 2] == "0")
+            {
+                hackCode.Add("@THIS");
+                hackCode.Add("D=M");
+                Push();
+            }
+            else if (parsedInput[index + 1] == "pointer" && parsedInput[index + 2] == "1")
+            {
+                hackCode.Add("@THAT");
+                hackCode.Add("D=M");
+                Push();
             }
         }
         private void Pop(int index)
@@ -252,7 +270,6 @@ namespace VirtualMachine
             hackCode.Add("@SP");
             hackCode.Add("M=M-1");
         }
-
         private void PushPointer(int index)
         {
             //Resolve pointer to get address of value we want
@@ -269,7 +286,6 @@ namespace VirtualMachine
             hackCode.Add("@SP");
             hackCode.Add("M=M+1");
         }
-
         private void Push()
         {
             hackCode.Add("@SP");
@@ -278,7 +294,6 @@ namespace VirtualMachine
             hackCode.Add("@SP");
             hackCode.Add("M=M+1");
         }
-
         public void AddBooleanHeader()
         {
             AddArithmeticHeader();
