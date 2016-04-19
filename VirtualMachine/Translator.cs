@@ -110,42 +110,47 @@ namespace VirtualMachine
                     case "return":
                         hackCode.Add("@LCL");
                         hackCode.Add("D=M");
-                        hackCode.Add("@14		");
+                        hackCode.Add("@14");
                         hackCode.Add("M=D");
                         hackCode.Add("@5");
                         hackCode.Add("A=D-A");
                         hackCode.Add("D=M");
-                        hackCode.Add("@15		");
+                        hackCode.Add("@15");
                         hackCode.Add("M=D");
                         hackCode.Add("@ARG");
-                        hackCode.Add("A=M");
-                        hackCode.Add("D=A");
+                        hackCode.Add("D=M");
+                        //hackCode.Add("D=A");
                         hackCode.Add("@0");
                         GenericPop();
+                        //Fix the stack pointer
+                        hackCode.Add("@ARG");
+                        hackCode.Add("D=M+1");
+                        hackCode.Add("@SP");
+                        hackCode.Add("M=D");
+                        //Stackpointer fixed?
                         hackCode.Add("@14");
-                        hackCode.Add("DM=M-1");
+                        hackCode.Add("AM=M-1");
+                        hackCode.Add("D=M");
                         hackCode.Add("@THAT");
                         hackCode.Add("M=D");
                         hackCode.Add("@14");
-                        hackCode.Add("DM=M-1");
+                        hackCode.Add("AM=M-1");
+                        hackCode.Add("D=M");
                         hackCode.Add("@THIS");
                         hackCode.Add("M=D");
                         hackCode.Add("@14");
-                        hackCode.Add("DM=M-1");
+                        hackCode.Add("AM=M-1");
+                        hackCode.Add("D=M");
                         hackCode.Add("@ARG");
                         hackCode.Add("M=D");
                         hackCode.Add("@14");
-                        hackCode.Add("DM=M-1");
+                        hackCode.Add("AM=M-1");
+                        hackCode.Add("D=M");
                         hackCode.Add("@LCL");
                         hackCode.Add("M=D");
                         hackCode.Add("@15");
                         hackCode.Add("A=M");
                         hackCode.Add("0;JMP");
-                        /*hackCode.Add("@SP");
-                        hackCode.Add("D=M");
-                        hackCode.Add("M=M-1");
-                        hackCode.Add("A=D");
-                        hackCode.Add("0;JMP");*/
                         break;
                 }
                 index++; 
