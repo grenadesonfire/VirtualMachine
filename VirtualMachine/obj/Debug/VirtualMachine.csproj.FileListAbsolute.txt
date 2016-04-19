@@ -19,3 +19,4 @@ C:\GIT\VirtualMachine\VirtualMachine\obj\Debug\VirtualMachine.VirtualMachineTran
 C:\GIT\VirtualMachine\VirtualMachine\obj\Debug\VirtualMachine.Properties.Resources.resources
 C:\GIT\VirtualMachine\VirtualMachine\obj\Debug\VirtualMachine.csproj.GenerateResource.Cache
 C:\GIT\VirtualMachine\VirtualMachine\obj\Debug\VirtualMachine.csprojResolveAssemblyReference.cache
+D:\Git\nand2tetris\VirtualMachine\VirtualMachine\obj\Debug\VirtualMachine.csprojResolveAssemblyReference.cache

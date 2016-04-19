@@ -30,13 +30,12 @@ namespace VirtualMachine
     }
     internal class Translator
     {
-        public string[] fileContents
-        {
-            get; private set;
-        }
+        public string[] fileContents{get; private set;}
         List<string> parsedInput;
         public List<string> hackCode { get; private set; }
         int _arithLabelCnt = 0;
+        Dictionary<string, int> functionInformation;
+
         internal void LoadFile(string fileName)
         {
             fileContents = File.ReadAllLines(fileName);
@@ -50,6 +49,7 @@ namespace VirtualMachine
         {
             hackCode = new List<string>();
             _arithLabelCnt = 0;
+            functionInformation = new Dictionary<string, int>();
             TranslateToHackAssem(0);
         }
         private void TranslateToHackAssem(int index)
@@ -90,6 +90,62 @@ namespace VirtualMachine
                         hackCode.Add("D=M");
                         hackCode.Add("@" + parsedInput[index + 1]);
                         hackCode.Add("D;JNE");
+                        break;
+                    case "goto":
+                        hackCode.Add("@" + parsedInput[index + 1]);
+                        hackCode.Add("0;JMP");
+                        break;
+                    case "function":
+                        functionInformation.Add(
+                            parsedInput[index + 1], 
+                            int.Parse(parsedInput[index + 2]));
+                        hackCode.Add("(" + parsedInput[index + 1] + ")");       
+                        for(int i = 0; i < int.Parse(parsedInput[index + 2]); i++)
+                        {
+                            hackCode.Add("@" + 0);
+                            hackCode.Add("D=A");
+                            Push();
+                        }                
+                        break;
+                    case "return":
+                        hackCode.Add("@LCL");
+                        hackCode.Add("D=M");
+                        hackCode.Add("@14		");
+                        hackCode.Add("M=D");
+                        hackCode.Add("@5");
+                        hackCode.Add("A=D-A");
+                        hackCode.Add("D=M");
+                        hackCode.Add("@15		");
+                        hackCode.Add("M=D");
+                        hackCode.Add("@ARG");
+                        hackCode.Add("A=M");
+                        hackCode.Add("D=A");
+                        hackCode.Add("@0");
+                        GenericPop();
+                        hackCode.Add("@14");
+                        hackCode.Add("DM=M-1");
+                        hackCode.Add("@THAT");
+                        hackCode.Add("M=D");
+                        hackCode.Add("@14");
+                        hackCode.Add("DM=M-1");
+                        hackCode.Add("@THIS");
+                        hackCode.Add("M=D");
+                        hackCode.Add("@14");
+                        hackCode.Add("DM=M-1");
+                        hackCode.Add("@ARG");
+                        hackCode.Add("M=D");
+                        hackCode.Add("@14");
+                        hackCode.Add("DM=M-1");
+                        hackCode.Add("@LCL");
+                        hackCode.Add("M=D");
+                        hackCode.Add("@15");
+                        hackCode.Add("A=M");
+                        hackCode.Add("0;JMP");
+                        /*hackCode.Add("@SP");
+                        hackCode.Add("D=M");
+                        hackCode.Add("M=M-1");
+                        hackCode.Add("A=D");
+                        hackCode.Add("0;JMP");*/
                         break;
                 }
                 index++; 
