@@ -34,6 +34,7 @@ namespace VirtualMachine
         List<string> parsedInput;
         public List<string> hackCode { get; private set; }
         int _arithLabelCnt = 0;
+        int _returnAddress = 0;
         Dictionary<string, int> functionInformation;
 
         internal void LoadFile(string fileName)
@@ -108,6 +109,8 @@ namespace VirtualMachine
                         }                
                         break;
                     case "return":
+                        //Store The value @LCL
+                        //into a temp frame
                         hackCode.Add("@LCL");
                         hackCode.Add("D=M");
                         hackCode.Add("@14");
@@ -115,11 +118,12 @@ namespace VirtualMachine
                         hackCode.Add("@5");
                         hackCode.Add("A=D-A");
                         hackCode.Add("D=M");
+                        //Grab the return address
+                        //and put it in a temp variable
                         hackCode.Add("@15");
                         hackCode.Add("M=D");
                         hackCode.Add("@ARG");
                         hackCode.Add("D=M");
-                        //hackCode.Add("D=A");
                         hackCode.Add("@0");
                         GenericPop();
                         //Fix the stack pointer
@@ -127,30 +131,80 @@ namespace VirtualMachine
                         hackCode.Add("D=M+1");
                         hackCode.Add("@SP");
                         hackCode.Add("M=D");
-                        //Stackpointer fixed?
+                        //Restore the that
                         hackCode.Add("@14");
                         hackCode.Add("AM=M-1");
                         hackCode.Add("D=M");
                         hackCode.Add("@THAT");
                         hackCode.Add("M=D");
+                        //Restore the this 
                         hackCode.Add("@14");
                         hackCode.Add("AM=M-1");
                         hackCode.Add("D=M");
                         hackCode.Add("@THIS");
                         hackCode.Add("M=D");
+                        //Restore the Arg
                         hackCode.Add("@14");
                         hackCode.Add("AM=M-1");
                         hackCode.Add("D=M");
                         hackCode.Add("@ARG");
                         hackCode.Add("M=D");
+                        //Fix the Local
                         hackCode.Add("@14");
                         hackCode.Add("AM=M-1");
                         hackCode.Add("D=M");
                         hackCode.Add("@LCL");
                         hackCode.Add("M=D");
+                        //goto retAddr
                         hackCode.Add("@15");
                         hackCode.Add("A=M");
                         hackCode.Add("0;JMP");
+                        break;
+                    case "call":
+                        //push returnAddress
+                        hackCode.Add("@" + "return_" + _returnAddress);
+                        hackCode.Add("D=A");
+                        Push();
+                        //push Local
+                        hackCode.Add("@LCL");
+                        hackCode.Add("D=M");
+                        Push();
+                        //push Arg
+                        hackCode.Add("@ARG");
+                        hackCode.Add("D=M");
+                        Push();
+                        //push THIS
+                        hackCode.Add("@THIS");
+                        hackCode.Add("D=M");
+                        Push();
+                        //push That
+                        hackCode.Add("@THAT");
+                        hackCode.Add("D=M");
+                        Push();
+                        //ARG = SP-nArgs-5
+                        hackCode.Add("@SP");
+                        hackCode.Add("D=M");
+                        hackCode.Add("@" + parsedInput[index + 2]);
+                        hackCode.Add("D=D-A");
+                        hackCode.Add("@5");
+                        hackCode.Add("D=D-A");
+                        Push();
+                        hackCode.Add("@ARG");
+                        hackCode.Add("D=A");
+                        GenericPop();
+                        //LCL = SP
+                        hackCode.Add("@SP");
+                        hackCode.Add("D=M");
+                        Push();
+                        hackCode.Add("@LCL");
+                        hackCode.Add("D=A");
+                        GenericPop();
+                        //goto g
+                        hackCode.Add("@" + parsedInput[index + 1]);
+                        hackCode.Add("0;JMP");
+                        //returnAddress:
+                        hackCode.Add("(" + "return_" + _returnAddress+")");
+                        _returnAddress++;
                         break;
                 }
                 index++; 
@@ -227,25 +281,25 @@ namespace VirtualMachine
             else if (parsedInput[index + 1] == "temp")
             {
                 hackCode.Add("@" + (5 + int.Parse(parsedInput[index + 2])));
-                hackCode.Add("D=0");
+                hackCode.Add("D=A");
                 GenericPop();
             }
             else if (parsedInput[index + 1] == "static")
             {
                 hackCode.Add("@" + (16 + int.Parse(parsedInput[index + 2])));
-                hackCode.Add("D=0");
+                hackCode.Add("D=A");
                 GenericPop();
             }
             else if (parsedInput[index + 1] == "pointer" && parsedInput[index + 2] == "0")
             {
                 hackCode.Add("@3");
-                hackCode.Add("D=0");
+                hackCode.Add("D=A");
                 GenericPop();
             }
             else if (parsedInput[index + 1] == "pointer" && parsedInput[index + 2] == "1")
             {
                 hackCode.Add("@4");
-                hackCode.Add("D=0");
+                hackCode.Add("D=A");
                 GenericPop();
             }
         }
@@ -309,11 +363,15 @@ namespace VirtualMachine
             hackCode.Add("A=M");
             hackCode.Add("D=A");
             hackCode.Add("@" + parsedInput[index + 2]);
+            hackCode.Add("D=D+A");
             GenericPop();
         }
+        /// <summary>
+        /// Assumes you have pushed to the top of the stack the value you want.
+        /// Assumes that D has the address you want.
+        /// </summary>
         private void GenericPop()
         {
-            hackCode.Add("D=D+A");
             //Store at top of the stack
             hackCode.Add("@SP");
             hackCode.Add("A=M");

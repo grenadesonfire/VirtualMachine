@@ -105,6 +105,7 @@ namespace VirtualMachine
         private void loadVmFile_Click(object sender, EventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
+            ofd.Filter = "Hack VM Files | *.vm";
             if(ofd.ShowDialog() == DialogResult.OK)
             {
                 string file = ofd.FileName;
