@@ -36,21 +36,62 @@ namespace VirtualMachine
         int _arithLabelCnt = 0;
         int _returnAddress = 0;
         Dictionary<string, int> functionInformation;
+        Stack<string> _stackTrace;
 
         internal void LoadFile(string fileName)
         {
             fileContents = File.ReadAllLines(fileName);
         }
-
+        internal void MultLoadFile(string fileName)
+        {
+            List<string> mergedFiles = new List<string>();
+            if(fileContents != null)
+            {   
+                mergedFiles.AddRange(fileContents);
+            }
+            string[] fileTemp = File.ReadAllLines(fileName);
+            List<string> newFile = new List<string>();
+            foreach(string s in fileTemp)
+            {
+                if (s.Contains("function"))
+                {
+                    string[] lineTmp = s.Split(' ');
+                    lineTmp[1] = lineTmp[1].Replace('.', '$');
+                    newFile.Add(lineTmp[0] +" "+ lineTmp[1] +" "+ lineTmp[2]);
+                }
+                else if (s.Contains("call"))
+                {
+                    string[] lineTmp = s.Split(' ');
+                    lineTmp[1] = lineTmp[1].Replace('.', '$');
+                    newFile.Add(lineTmp[0] + " " + lineTmp[1] + " " + lineTmp[2]);
+                }
+                else
+                {
+                    newFile.Add(s);
+                }
+            }
+            mergedFiles.AddRange(newFile);
+            fileContents = mergedFiles.ToArray();
+        }
         internal void Parse()
         {
             parsedInput = Parser.Parse(fileContents);
         }
-        internal void TranslateToHackAssem()
+        internal void TranslateToHackAssem(bool generateBootStrap)
         {
             hackCode = new List<string>();
+            if (generateBootStrap) { 
+                //Load Stack Pointer
+                hackCode.Add("@256");
+                hackCode.Add("D=A");
+                hackCode.Add("@SP");
+                hackCode.Add("M=D");
+                //call Sys.init
+                writeCall("Sys$init", "0");
+            }
             _arithLabelCnt = 0;
             functionInformation = new Dictionary<string, int>();
+            _stackTrace = new Stack<string>();
             TranslateToHackAssem(0);
         }
         private void TranslateToHackAssem(int index)
@@ -100,6 +141,7 @@ namespace VirtualMachine
                         functionInformation.Add(
                             parsedInput[index + 1], 
                             int.Parse(parsedInput[index + 2]));
+                        _stackTrace.Push(parsedInput[index + 1].Split('$')[0]);
                         hackCode.Add("(" + parsedInput[index + 1] + ")");       
                         for(int i = 0; i < int.Parse(parsedInput[index + 2]); i++)
                         {
@@ -109,6 +151,7 @@ namespace VirtualMachine
                         }                
                         break;
                     case "return":
+                        _stackTrace.Pop();
                         //Store The value @LCL
                         //into a temp frame
                         hackCode.Add("@LCL");
@@ -161,7 +204,8 @@ namespace VirtualMachine
                         hackCode.Add("0;JMP");
                         break;
                     case "call":
-                        //push returnAddress
+                        writeCall(parsedInput[index + 1], parsedInput[index + 2]);
+                        /*//push returnAddress
                         hackCode.Add("@" + "return_" + _returnAddress);
                         hackCode.Add("D=A");
                         Push();
@@ -204,11 +248,59 @@ namespace VirtualMachine
                         hackCode.Add("0;JMP");
                         //returnAddress:
                         hackCode.Add("(" + "return_" + _returnAddress+")");
-                        _returnAddress++;
+                        _returnAddress++;*/
                         break;
                 }
                 index++; 
             }
+        }
+
+        private void writeCall(string funcName, string numArgs)
+        {
+            //push returnAddress
+            hackCode.Add("@" + "return_" + _returnAddress);
+            hackCode.Add("D=A");
+            Push();
+            //push Local
+            hackCode.Add("@LCL");
+            hackCode.Add("D=M");
+            Push();
+            //push Arg
+            hackCode.Add("@ARG");
+            hackCode.Add("D=M");
+            Push();
+            //push THIS
+            hackCode.Add("@THIS");
+            hackCode.Add("D=M");
+            Push();
+            //push That
+            hackCode.Add("@THAT");
+            hackCode.Add("D=M");
+            Push();
+            //ARG = SP-nArgs-5
+            hackCode.Add("@SP");
+            hackCode.Add("D=M");
+            hackCode.Add("@" + numArgs);
+            hackCode.Add("D=D-A");
+            hackCode.Add("@5");
+            hackCode.Add("D=D-A");
+            Push();
+            hackCode.Add("@ARG");
+            hackCode.Add("D=A");
+            GenericPop();
+            //LCL = SP
+            hackCode.Add("@SP");
+            hackCode.Add("D=M");
+            Push();
+            hackCode.Add("@LCL");
+            hackCode.Add("D=A");
+            GenericPop();
+            //goto g
+            hackCode.Add("@" + funcName);
+            hackCode.Add("0;JMP");
+            //returnAddress:
+            hackCode.Add("(" + "return_" + _returnAddress + ")");
+            _returnAddress++;
         }
 
         private void ParseBoolean(string v)
@@ -286,7 +378,8 @@ namespace VirtualMachine
             }
             else if (parsedInput[index + 1] == "static")
             {
-                hackCode.Add("@" + (16 + int.Parse(parsedInput[index + 2])));
+                //hackCode.Add("@" + //(16 + int.Parse(parsedInput[index + 2])));
+                hackCode.Add("@" + _stackTrace.Peek() + "." + parsedInput[index + 2]);
                 hackCode.Add("D=A");
                 GenericPop();
             }
@@ -339,7 +432,8 @@ namespace VirtualMachine
             }
             else if (parsedInput[index + 1] == "static")
             {
-                hackCode.Add("@" + (16 + int.Parse(parsedInput[index + 2])));
+                //hackCode.Add("@" + (16 + int.Parse(parsedInput[index + 2])));
+                hackCode.Add("@" + _stackTrace.Peek() + "." + parsedInput[index + 2]);
                 hackCode.Add("D=M");
                 Push();
             }

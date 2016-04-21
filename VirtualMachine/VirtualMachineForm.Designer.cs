@@ -34,6 +34,7 @@
             this.asmFileTextBox = new System.Windows.Forms.TextBox();
             this.loadVmFile = new System.Windows.Forms.Button();
             this.TranslateButton = new System.Windows.Forms.Button();
+            this.bootStrapCheckBox = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // HistoryTextBox
@@ -103,11 +104,22 @@
             this.TranslateButton.UseVisualStyleBackColor = true;
             this.TranslateButton.Click += new System.EventHandler(this.Translate_Click);
             // 
+            // bootStrapCheckBox
+            // 
+            this.bootStrapCheckBox.AutoSize = true;
+            this.bootStrapCheckBox.Location = new System.Drawing.Point(93, 416);
+            this.bootStrapCheckBox.Name = "bootStrapCheckBox";
+            this.bootStrapCheckBox.Size = new System.Drawing.Size(111, 17);
+            this.bootStrapCheckBox.TabIndex = 7;
+            this.bootStrapCheckBox.Text = "Disable BootStrap";
+            this.bootStrapCheckBox.UseVisualStyleBackColor = true;
+            // 
             // VirtualMachineTranslatorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(443, 448);
+            this.Controls.Add(this.bootStrapCheckBox);
             this.Controls.Add(this.TranslateButton);
             this.Controls.Add(this.loadVmFile);
             this.Controls.Add(this.asmFileTextBox);
@@ -129,6 +141,7 @@
         private System.Windows.Forms.TextBox asmFileTextBox;
         private System.Windows.Forms.Button loadVmFile;
         private System.Windows.Forms.Button TranslateButton;
+        private System.Windows.Forms.CheckBox bootStrapCheckBox;
     }
 }
 

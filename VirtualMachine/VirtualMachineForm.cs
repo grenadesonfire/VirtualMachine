@@ -78,7 +78,7 @@ namespace VirtualMachine
                         {
                             translator.LoadFile(cmdBits[1]);
                             translator.Parse();
-                            translator.TranslateToHackAssem();
+                            translator.TranslateToHackAssem(true);
                             translator.Save(cmdBits[1].Replace(".vm",".asm"));
                         }
                         else
@@ -106,11 +106,21 @@ namespace VirtualMachine
         {
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.Filter = "Hack VM Files | *.vm";
+            ofd.Multiselect = true;
             if(ofd.ShowDialog() == DialogResult.OK)
             {
-                string file = ofd.FileName;
-                translator.LoadFile(file);
-                vmFileTextBox.Lines = translator.fileContents;
+                if(ofd.FileNames.Count() == 1)
+                {
+                    string file = ofd.FileName;
+                    translator.LoadFile(file);
+                    vmFileTextBox.Lines = translator.fileContents;
+                }
+                else if(ofd.FileNames.Count() > 1)
+                {
+                    foreach (string fName in ofd.FileNames)
+                        translator.MultLoadFile(fName);
+                    vmFileTextBox.Lines = translator.fileContents;
+                }
             }
         }
 
@@ -124,7 +134,7 @@ namespace VirtualMachine
             {
                 string file = sfd.FileName;
                 translator.Parse();
-                translator.TranslateToHackAssem();
+                translator.TranslateToHackAssem(!bootStrapCheckBox.Checked);
                 translator.Save(file);
 
                 //asmFileTextBox.Lines = translator.hackCode.ToArray();
